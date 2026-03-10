@@ -195,6 +195,15 @@ cd ~/.openclaw/workspace/skills/fitness-personal-assistant/scripts
 python3 body-status-reporter.py
 ```
 
+**指定日期（查看历史）：**
+```bash
+# 查看昨天
+python3 body-status-reporter.py --date 2026-03-10
+
+# 查看过去某天的报告
+python3 body-status-reporter.py -d 2026-03-09
+```
+
 ---
 
 ## 🔧 高级选项

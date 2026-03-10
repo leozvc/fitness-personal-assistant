@@ -26,16 +26,21 @@ def format_duration(seconds: float) -> str:
     else:
         return f"{seconds/60:.0f}分钟"
 
-def generate_deep_analysis_report(client: IntervalsICUClient):
-    """生成带深度解读的身体状态报告"""
+def generate_deep_analysis_report(client: IntervalsICUClient, report_date: str = None):
+    """生成带深度解读的身体状态报告
+    Args:
+        client: API 客户端
+        report_date: 报告日期 (YYYY-MM-DD),默认使用今天
+    """
     # 从客户端获取运动员 ID（避免硬编码）
     athlete_display = client.athlete_id if hasattr(client, 'athlete_id') else "iXXXXXXXXX"
     today = datetime.now().strftime("%Y-%m-%d")
-    start_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+    target_date = report_date or today
+    start_date = (datetime.strptime(target_date, "%Y-%m-%d") - timedelta(days=7)).strftime("%Y-%m-%d")
     
     # 获取数据
     summary = client.get_athlete_summary()
-    wellness = client.get_wellness(today)
+    wellness = client.get_wellness(target_date)
     activities = client.get_activities(start_date, today)
     
     # 提取指标
@@ -58,7 +63,7 @@ def generate_deep_analysis_report(client: IntervalsICUClient):
     report.append("🏆 职业运动员级别身体状态详细分析报告")
     report.append(" " * 45 + "───────────────────\n")
     report.append(f"运动员：{athlete_display}")
-    report.append(f"生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M')} | v3.1.0")
+    report.append(f"分析日期：{datetime.now().strftime('%Y-%m-%d %H:%M')} | v3.1.0")
     report.append("="*60 + "\n")
     
     # 1. 竞技状态准备度
@@ -464,6 +469,12 @@ def generate_deep_analysis_report(client: IntervalsICUClient):
 
 def main():
     """主程序入口"""
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='生成身体状态详细分析报告')
+    parser.add_argument('--date', '-d', type=str, help='分析日期 (YYYY-MM-DD)，默认使用今天')
+    args = parser.parse_args()
+    
     client = create_client()
     if not client:
         print("❌ 无法创建 API 客户端，请检查配置")
@@ -475,7 +486,7 @@ def main():
         sys.exit(1)
     
     # 生成深度分析报告
-    report = generate_deep_analysis_report(client)
+    report = generate_deep_analysis_report(client, args.date)
     print(report)
 
 if __name__ == "__main__":
