@@ -4,10 +4,11 @@ Intervals.icu API Client - Python 完整实现
 基于官方 API 文档：https://forum.intervals.icu/t/intervals-icu-api-integration-cookbook/80090
 
 功能：
-- 查询运动员摘要（fitness/fatigue/TSB）
-- 查询/上传健康数据（wellness）
-- 查询/上传活动记录（activities）
+- 查询运动员摘要 (fitness/fatigue/TSB)
+- 查询/上传健康数据 (wellness)
+- 查询/上传活动记录 (activities)
 - 自动错误处理和重试
+- 配置文件不存在时引导创建
 """
 
 import json
@@ -17,9 +18,7 @@ import time
 import requests
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional, Dict, List, Any
 from dataclasses import dataclass, asdict
-
 # ================= 配置 =================
 BASE_URL = "https://intervals.icu/api/v1"
 DEFAULT_STORAGE_PATH = Path.home() / ".openclaw" / "workspace" / "body-management-data"
@@ -106,7 +105,7 @@ class IntervalsICUClient:
         return None
     
     def get_athlete_summary(self) -> Optional[Dict]:
-        """获取运动员摘要（fitness/fatigue/TSB）"""
+        """获取运动员摘要 (fitness/fatigue/TSB)"""
         endpoint = f"/athlete/{self.athlete_id}/athlete-summary"
         result = self._request("GET", endpoint)
         
@@ -197,33 +196,110 @@ class IntervalsICUClient:
         result = self.get_athlete_summary()
         return result is not None and "fitness" in result
 
+
 # ================= 工具函数 =================
+
 def load_config() -> Optional[Dict]:
-    """加载配置文件"""
+    """加载配置文件，如果不存在则引导创建"""
     if not CONFIG_FILE.exists():
-        print(f"❌ 配置文件未找到：{CONFIG_FILE}", file=sys.stderr)
+        print(f"⚠️ 配置文件未找到：{CONFIG_FILE}")
+        print("\n🔧 正在帮您初始化配置...")
         return None
     
-    with open(CONFIG_FILE) as f:
-        return json.load(f)
+    try:
+        with open(CONFIG_FILE) as f:
+            return json.load(f)
+    except json.JSONDecodeError as e:
+        print(f"❌ 配置文件格式错误：{e}")
+        return None
+    except Exception as e:
+        print(f"❌ 读取配置文件失败：{e}")
+        return None
+
+def prompt_for_credentials() -> Optional[Tuple[str, str]]:
+    """交互式提示用户输入 credentials"""
+    print("\n" + "=" * 50)
+    print("🔐 配置 Intervals.icu API 凭证")
+    print("=" * 50)
+    print("\n请先注册账号：https://intervals.icu/register")
+    print("获取凭证：Settings → API Keys\n")
+    
+    while True:
+        athlete_id = input("请输入 Athlete ID (例如：iXXXXXXXXX): ").strip()
+        if athlete_id and athlete_id.startswith('i'):
+            break
+        print("❌ Athlete ID 格式不正确，应该以 'i' 开头")
+    
+    api_key = input("请输入 API Key: ").strip()
+    if not api_key:
+        print("❌ API Key 不能为空")
+        return None
+    
+    # 验证凭证
+    try:
+        test_client = IntervalsICUClient(athlete_id, api_key)
+        if test_client.test_connection():
+            print("✅ 凭证验证成功！")
+        else:
+            print("❌ 凭证无效，API 连接失败")
+            return None
+    except Exception as e:
+        print(f"❌ 验证失败：{e}")
+        return None
+    
+    # 保存配置
+    config = {
+        "intervals_icu": {
+            "athlete_id": athlete_id,
+            "api_key": api_key
+        }
+    }
+    
+    STORAGE_PATH.mkdir(parents=True, exist_ok=True)
+    with open(CONFIG_FILE, 'w') as f:
+        json.dump(config, f, indent=2)
+    
+    os.chmod(CONFIG_FILE, 0o600)
+    print(f"\n✅ 配置已保存到：{CONFIG_FILE}")
+    print("=" * 50 + "\n")
+    
+    return athlete_id, api_key
 
 def create_client() -> Optional[IntervalsICUClient]:
-    """从配置创建 API 客户端"""
+    """从配置创建 API 客户端，如果配置缺失则引导创建"""
     config = load_config()
+    
     if not config:
-        return None
+        credentials = prompt_for_credentials()
+        if not credentials:
+            print("❌ 无法创建 API 客户端")
+            return None
+        
+        # 重新加载新创建的配置
+        config = load_config()
+        if not config:
+            return None
     
     intervals_config = config.get("intervals_icu", {})
     athlete_id = intervals_config.get("athlete_id")
     api_key = intervals_config.get("api_key")
     
     if not athlete_id or not api_key:
-        print("❌ 配置不完整：缺少 athlete_id 或 api_key", file=sys.stderr)
-        return None
+        print("❌ 配置不完整：缺少 athlete_id 或 api_key")
+        credentials = prompt_for_credentials()
+        if not credentials:
+            return None
+        
+        config = load_config()
+        intervals_config = config.get("intervals_icu", {})
+        athlete_id = intervals_config.get("athlete_id")
+        api_key = intervals_config.get("api_key")
     
     return IntervalsICUClient(athlete_id, api_key)
 
+
 # ================= 主程序 =================
+
 def main():
     """主程序入口"""
     print("\n" + "=" * 50)

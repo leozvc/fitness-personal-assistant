@@ -1,6 +1,6 @@
 ---
 name: fitness-personal-assistant
-description: 一体化健身追踪系统。**需配置 intervals.icu API Key**。管理饮食记录和身体状态，自动同步到 intervals.icu。
+description: 一体化健身追踪系统。自动同步饮食记录和身体状态到 intervals.icu。支持配置引导和错误处理。
 allowed-tools:
   - Bash
   - Python
@@ -58,12 +58,20 @@ API Key: YOUR_INTERVALS_ICU_API_KEY_HERE
 - 使用 `.env` 文件或环境变量管理密钥
 - 示例中的 `iXXXXXXXXX` 和 `YOUR_INTERVALS_ICU_API_KEY_HERE` 为占位符
 
-### 3️⃣ 配置凭证
+### 3️⃣ 配置凭证（可选）
 
-**默认存储路径：** `~/.openclaw/workspace/body-management-data`  
-**可自定义：** 通过环境变量 `BODY_MANAGEMENT_DATA`
+工具会在首次运行时**自动引导你创建配置文件**。
 
-创建配置文件：
+**默认存储路径:** `~/.openclaw/workspace/body-management-data`  
+**可自定义:** 通过环境变量 `BODY_MANAGEMENT_DATA`
+
+如果脚本检测到配置文件不存在或读取失败，会提示你输入:
+- Athlete ID (例如：`iXXXXXXXXX`)
+- API Key
+
+凭证会自动保存到 `config.json`,权限设置为 `600`。
+
+**手动配置方式:**
 ```bash
 mkdir -p ~/.openclaw/workspace/body-management-data
 ```
@@ -78,7 +86,7 @@ mkdir -p ~/.openclaw/workspace/body-management-data
 }
 ```
 
-**注意:** 文件权限设置为 `chmod 600 config.json`，避免泄露凭证。
+**注意:** 使用 `.env` 文件或环境变量管理密钥更安全，不要将 `config.json` 提交到 Git。
 
 ### 4️⃣ 验证安装
 
@@ -232,6 +240,8 @@ python3 meal-to-intervals.py --text "早餐"
 - **错误处理**: 403/404/500 等状态码优雅降级
 - **Basic Auth**: 使用 `API_KEY:<key>` 格式
 - **连接测试**: `client.test_connection()`
+- **配置引导**: 配置文件不存在时自动引导用户输入凭证
+- **格式验证**: 验证 Athlete ID 格式 (必须是以 `i` 开头)
 
 ### Wellness 数据字段
 
@@ -303,12 +313,16 @@ A: 检查：
 **Q: 如何解锁被锁定的 wellness 数据？**  
 A: 在 intervals.icu 网页端手动解锁，或使用 API 设置 `"locked": false`。
 
+**Q: 配置文件损坏了怎么办？**  
+A: 删除 `config.json`,重新运行任意脚本会自动引导你重新配置。
+
 ---
 
 ## 🔄 版本历史
 
 | 版本 | 日期 | 更新内容 |
 |------|------|----------|
+| v3.3.0 | 2026-03-10 | 新增配置引导功能：配置文件不存在/损坏时自动提示用户输入凭证 |
 | v3.2.0 | 2026-03-10 | 默认输出详细分析报告，含竞技状态准备度 + 深度解读表格 |
 | v3.1.0 | 2026-03-10 | Python 完整重构，基于官方 API 文档，支持完整 wellness 字段 |
 | v2.1 | 2026-03-10 | 支持自定义存储路径，自动创建子目录 |
