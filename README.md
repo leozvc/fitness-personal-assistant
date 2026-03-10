@@ -1,37 +1,112 @@
 # 🏋️ Fitness Personal Assistant
 
-一体化健身追踪系统，帮你管理饮食记录和身体状态，自动同步到 [intervals.icu](https://intervals.icu)。
+> ⚡ **OpenClaw 一键安装** | ⚠️ **需配置 API Key** | [Intervals.icu 注册](https://intervals.icu/register)
 
-![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)
+一体化健身追踪系统，基于 Python 实现，帮你管理饮食记录和身体状态，自动同步到 [intervals.icu](https://intervals.icu)。
+
+![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Language](https://img.shields.io/badge/language-bash-orange.svg)
+![Language](https://img.shields.io/badge/language-Python-blue.svg)
 
 ---
 
-## 🚀 快速开始
+## ⚡ OpenClaw 超级简洁安装
+
+如果你使用 [OpenClaw](https://openclaw.ai)，只需一条命令：
+
+```bash
+# 安装技能
+openclaw skills install fitness-personal-assistant
+
+# 启用技能
+openclaw skills enable fitness-personal-assistant
+
+# 配置 API Key（只需一次）
+mkdir -p ~/.openclaw/workspace/body-management-data
+cat > ~/.openclaw/workspace/body-management-data/config.json << EOF
+{
+  "intervals_icu": {
+    "api_key": "YOUR_API_KEY",
+    "athlete_id": "iYOUR_ID"
+  }
+}
+EOF
+chmod 600 ~/.openclaw/workspace/body-management-data/config.json
+```
+
+### 🎯 在 OpenClaw 中使用
+
+安装后，直接在聊天中使用：
+
+```
+# 查询身体状态（自动显示职业级完整报告）
+查看我的身体状态
+
+# 记录饮食
+早餐：250ml 牛奶和两个鸡蛋
+午餐：300g 牛肉和 200 克米饭
+
+# 查看完整分析
+查看职业级分析报告
+```
+
+---
+
+## 🚀 独立使用（不使用 OpenClaw）
 
 ### 环境要求
 
 - ✅ macOS / Linux
-- ✅ Bash 4.0+
-- ✅ `jq` 命令行工具
-- ✅ `curl` 网络请求工具
-- ✅ `perl` (用于文本处理)
+- ✅ Python 3.8+
+- ✅ `requests` 库
+- ✅ intervals.icu API Key
 
-### 安装步骤
+### ⚙️ 配置步骤
+
+#### 第一步：准备 intervals.icu 账号
+
+如果没有账号，先注册：[https://intervals.icu/register](https://intervals.icu/register)
+
+#### 第二步：获取 API 凭证
+
+1. 登录 [intervals.icu](https://intervals.icu)
+2. 进入 **Settings → API Keys**
+3. 复制你的 `Athlete ID` (格式如 `i206099`) 和 `API Key`
+
+#### 第三步：本地配置
 
 ```bash
-# 1. 克隆技能目录
-cd ~/.openclaw/workspace/skills
-
-# 2. 配置你的 intervals.icu 凭证
+# 创建数据目录
 mkdir -p ~/.openclaw/workspace/body-management-data
-cp fitness-personal-assistant/config.example.json ~/.openclaw/workspace/body-management-data/config.json
-# 编辑 config.json，填入你的 API Key 和 Athlete ID
-nano ~/.openclaw/workspace/body-management-data/config.json
 
-# 3. 验证安装
-./fitness-personal-assistant/scripts/meal-to-intervals.sh --health-check
+# 创建配置文件
+cat > ~/.openclaw/workspace/body-management-data/config.json << EOF
+{
+  "intervals_icu": {
+    "api_key": "YOUR_API_KEY",
+    "athlete_id": "iYOUR_ID"
+  }
+}
+EOF
+
+# 设置文件权限
+chmod 600 ~/.openclaw/workspace/body-management-data/config.json
+```
+
+#### 第四步：验证安装
+
+```bash
+cd ~/.openclaw/workspace/skills/fitness-personal-assistant/scripts
+python3 intervals_api_client.py
+```
+
+预期输出:
+```
+✅ API 连接成功
+📊 获取运动员摘要...
+  体能 (fitness): 19.74
+  疲劳 (fatigue): 30.43
+  形态 (form/TSB): -10.69
 ```
 
 ---
@@ -44,47 +119,91 @@ nano ~/.openclaw/workspace/body-management-data/config.json
 
 ```bash
 # 最简单的用法
-./meal-to-intervals.sh --text "早餐两个鸡蛋一片全麦面包"
+python3 meal-to-intervals.py --text "早餐两个鸡蛋一片全麦面包"
 
 # 混合多种食物
-./meal-to-intervals.sh --text "午餐鸡胸肉 200g 配西兰花"
+python3 meal-to-intervals.py --text "午餐鸡胸肉 200g 配西兰花"
 
-# 自定义存储路径
-./meal-to-intervals.sh -s /custom/path --text "晚餐一碗米饭"
+# 禁用 OpenFoodFacts API（国内网络慢）
+python3 meal-to-intervals.py --text "晚餐一碗米饭" --no-off
+
+# 交互式询问（无法识别的食物）
+python3 meal-to-intervals.py --text "吃了些螺蛳粉" --interactive
 ```
 
 **支持的食物识别:**
-- 肉类：牛肉、鸡胸肉、鱼、虾等
-- 主食：米饭、面条、面包、馒头等
-- 蔬果：各种蔬菜水果
-- 乳制品：牛奶、酸奶、奶酪
-- 油脂类：食用油、黄油
+- 中文自然语言："250ml 牛奶"、"300g 牛肉"、"两个鸡蛋"
+- 自动营养估算：基于中文食物规则库 + OpenFoodFacts API
+- 多餐次识别：自动判断早餐/午餐/晚餐
 
 ### 💪 身体状态查询
 
 查看你的训练负荷和恢复情况:
 
 ```bash
-./intervals-status-reporter.sh
+# 基础报告（快速查看）
+python3 body-status-reporter.py
 
-# 输出示例
-┌─────────────────💪 身体状态报告 - 2026-03-10 ───────────────────┐
-│ 生成时间：10:30                                                  │
-└──────────────────────────────────────────────────────────────────┘
+# 职业级完整分析（默认）
+python3 body-status-reporter.py --pro
+```
 
-📊 训练负荷
-形态评分：🟡 良好 (3.5)
-体能 (CTL 类似): 20 小时   🐢 长期训练状态
-疲劳 (ATL 类似):  15 小时   🐇 当前疲劳水平
-TSB (平衡):      5.0        🎯 恢复与负荷平衡
+**输出包含:**
+- 训练负荷：CTL/ATL/TSB
+- 恢复指标：HRV、静息心率、睡眠
+- 近期训练：详细记录
+- 训练建议：基于 TSB 的强度建议
 
-💤 恢复指标
-HRV (心率变异性): 45.0 ms  💓 自主神经系统平衡
-静息心率：58 bpm  ❤️ 越低越好
-睡眠时长：7.5 小时 (450 分钟)
+### 🏆 职业级分析
 
-🎯 训练建议
-🙂 恢复良好 - 保持当前训练量💪
+完整的职业运动员级别分析报告：
+
+```bash
+python3 pro_athlete_analytics.py
+```
+
+**报告包含:**
+- 📊 竞技状态准备度评分（0-100 分）
+- 📈 运动表现预测（基于运动类型）
+- 📋 推荐训练计划（7 天详细安排）
+- 🍽️ 营养摄入目标（减脂/增肌自动计算）
+
+---
+
+## 📊 使用场景
+
+### 减脂期饮食追踪
+
+```bash
+# 记录三餐
+python3 meal-to-intervals.py --text "早餐一杯牛奶两个鸡蛋" --no-off
+python3 meal-to-intervals.py --text "午餐鸡胸肉 200g 配大量蔬菜" --no-off
+python3 meal-to-intervals.py --text "晚餐一份烤鱼肉" --no-off
+
+# 查看营养摄入是否达标
+python3 pro_athlete_analytics.py | grep -A 20 "营养摄入目标"
+```
+
+### 训练状态监控
+
+```bash
+# 每天查看身体状态
+python3 body-status-reporter.py
+
+# 根据 TSB 决定训练强度
+# TSB > 10: 高强度训练
+# TSB 0-10: 中等强度
+# TSB < 0: 恢复训练
+```
+
+### 比赛/测试准备
+
+```bash
+# 查看最佳表现窗口
+python3 pro_athlete_analytics.py | grep "最佳表现窗口"
+
+# 根据训练计划执行
+python3 pro_athlete_analytics.py | grep -A 10 "推荐训练计划"
 ```
 
 ---
@@ -99,9 +218,10 @@ HRV (心率变异性): 45.0 ms  💓 自主神经系统平衡
 {
   "meal_name": "午餐",
   "meal_time": "2026-03-10T12:30:00+08:00",
+  "notes": "公司食堂",
   "items": [
-    {"name": "鸡胸肉", "grams": 200},
-    {"name": "西兰花", "grams": 150}
+    {"name": "鸡胸肉", "grams": 200, "calories": 220, "protein_g": 46},
+    {"name": "西兰花", "grams": 150, "calories": 52, "protein_g": 4.5}
   ]
 }
 ```
@@ -109,7 +229,7 @@ HRV (心率变异性): 45.0 ms  💓 自主神经系统平衡
 执行：
 
 ```bash
-./meal-to-intervals.sh --input meal.json
+python3 meal-to-intervals.py --input meal.json
 ```
 
 ### 干跑模式（测试）
@@ -117,13 +237,14 @@ HRV (心率变异性): 45.0 ms  💓 自主神经系统平衡
 不上传数据，只计算营养：
 
 ```bash
-./meal-to-intervals.sh --dry-run --text "300g 牛肉"
+python3 meal-to-intervals.py --text "300g 牛肉" --dry-run
 ```
 
-### 环境变量方式
+### 自定义存储路径
 
 ```bash
-BODY_MANAGEMENT_DATA=/custom/data/path ./meal-to-intervals.sh --text "早餐"
+export BODY_MANAGEMENT_DATA=/custom/data/path
+python3 meal-to-intervals.py --text "早餐"
 ```
 
 ---
@@ -132,29 +253,27 @@ BODY_MANAGEMENT_DATA=/custom/data/path ./meal-to-intervals.sh --text "早餐"
 
 ### 架构设计
 
-```mermaid
-graph LR
-    A[用户输入] --> B{识别类型}
-    B -->|自然语言 | C[NLP 解析]
-    B -->|JSON| D[直接读取]
-    C --> E[营养估算引擎]
-    D --> E
-    E --> F{API 可用？}
-    F -->|是 | G[OpenFoodFacts]
-    F -->|否 | H[规则估算]
-    G --> I[intervals.icu API]
-    H --> I
-    I --> J[数据库更新]
+```
+scripts/
+├── intervals_api_client.py    # Intervals.icu API 客户端
+├── nutrition_estimator.py     # 营养估算引擎
+│   ├── OpenFoodFacts API
+│   └── 中文食物规则库 (150+ 种)
+├── meal-to-intervals.py       # 饮食记录 + 同步
+├── body-status-reporter.py    # 身体状态报告
+└── pro_athlete_analytics.py   # 职业级分析
+    ├── 竞技状态评分
+    ├── 运动表现预测
+    ├── 训练计划生成
+    └── 营养目标计算
 ```
 
 ### 依赖清单
 
 | 依赖 | 用途 | 来源 |
 |------|------|------|
-| `bash` | 脚本运行环境 | 系统自带 |
-| `jq` | JSON 处理 | [jq GitHub](https://github.com/jqlang/jq) |
-| `curl` | HTTP 请求 | 系统自带 |
-| `perl` | 文本正则匹配 | 系统自带 |
+| `requests` | HTTP 请求 | pip install requests |
+| Python 3.8+ | 运行环境 | 系统自带 |
 
 ### 外部 API
 
@@ -163,55 +282,45 @@ graph LR
 
 ---
 
-## 📊 使用场景
-
-### 减脂期饮食追踪
-
-```bash
-# 早餐：控制热量
-./meal-to-intervals.sh --text "早餐一个水煮蛋一杯黑咖啡"
-
-# 午餐：高蛋白低碳水
-./meal-to-intervals.sh --text "午餐鸡胸肉 200g 配大量蔬菜"
-
-# 晚餐：轻食为主
-./meal-to-intervals.sh --text "晚餐一份烤鱼肉 150g"
-```
-
-### 增肌期营养规划
-
-```bash
-# 训练后补充
-./meal-to-intervals.sh --text "增肌粉一勺鸡胸肉 200g 米饭 150g"
-```
-
-### 恢复日监测
-
-```bash
-# 每天早晚查询身体状态
-./intervals-status-reporter.sh
-```
-
----
-
 ## ⚠️ 注意事项
 
 1. **数据隐私**: 所有健康数据存储在 intervals.icu 云端，本地仅保存配置文件
-2. **API 限流**: OpenFoodFacts 有速率限制，重复请求会退避重试
-3. **中文支持**: 内置中→英映射表，但部分中国特色食材可能需要手动补充
-4. **错误降级**: API 失败时自动切换到规则估算，确保可用性
+2. **API 限流**: OpenFoodFacts 有速率限制，国内访问可能超时（可用 `--no-off` 禁用）
+3. **中文支持**: 内置 150+ 种常见中餐食物规则
+4. **错误降级**: API 失败时自动切换到规则估算
+
+---
+
+## 📚 方法论来源
+
+- **TrainingPeaks TSS 系统** - CTL/ATL/TSB 计算
+- **TRIMP 训练负荷理论** - Banister 模型
+- **心率区间训练** - 5 区功率/心率模型
+- **HRV 恢复监测** - 自主神经系统评估
 
 ---
 
 ## 🔄 版本历史
 
-详见 [`CHANGELOG.md`](./CHANGELOG.md) 或 [`SKILL.md`](./SKILL.md)
+### v3.0.0 (2026-03-10)
+- 🎉 Python 完整重构
+- ✨ 职业级分析系统上线
+- ✨ 运动表现预测
+- ✨ 训练计划生成
+- ✨ 营养目标计算
+
+### v2.1.0 (2026-03-09)
+- 合并 body-management-system
+- 新增自然语言输入
+
+### v2.0.0 (2026-03-08)
+- 纯云营养计算 + 智能估算
 
 ---
 
 ## 📄 License
 
-MIT License - 详见 [`LICENSE`](./LICENSE)
+MIT License
 
 ---
 

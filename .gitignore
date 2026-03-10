@@ -1,11 +1,45 @@
-# Sensitive files - DO NOT COMMIT
-config.json
-*.env
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE settings
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
 
 # Logs
 *.log
+logs/
 
-# Temporary files
-*.tmp
-*~
-.DS_Store
+# Configuration (if needed locally)
+.env
+.local.json
+
+# Build artifacts
+dist/
+build/
+*.egg-info/

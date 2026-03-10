@@ -1,0 +1,9 @@
+{
+  "name": "fitness-personal-assistant",
+  "version": "3.0.1",
+  "description": "一体化健身追踪系统",
+  "main": "scripts/body-status-reporter.py",
+  "keywords": ["fitness", "health", "intervals", "tracking"],
+  "author": "leozvc",
+  "license": "MIT"
+}
