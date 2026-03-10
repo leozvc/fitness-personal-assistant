@@ -1,0 +1,11 @@
+# Sensitive files - DO NOT COMMIT
+config.json
+*.env
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*~
+.DS_Store
