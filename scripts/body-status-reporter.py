@@ -28,6 +28,8 @@ def format_duration(seconds: float) -> str:
 
 def generate_deep_analysis_report(client: IntervalsICUClient):
     """生成带深度解读的身体状态报告"""
+    # 从客户端获取运动员 ID（避免硬编码）
+    athlete_display = client.athlete_id if hasattr(client, 'athlete_id') else "iXXXXXXXXX"
     today = datetime.now().strftime("%Y-%m-%d")
     start_date = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
     
@@ -55,7 +57,7 @@ def generate_deep_analysis_report(client: IntervalsICUClient):
     report.append("\n" + "="*60)
     report.append("🏆 职业运动员级别身体状态详细分析报告")
     report.append(" " * 45 + "───────────────────\n")
-    report.append(f"运动员：leozvc | i206099")
+    report.append(f"运动员：{athlete_display}")
     report.append(f"生成时间：{datetime.now().strftime('%Y-%m-%d %H:%M')} | v3.1.0")
     report.append("="*60 + "\n")
     
