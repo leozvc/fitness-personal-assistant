@@ -21,7 +21,7 @@ from pathlib import Path
 from dataclasses import dataclass, asdict
 # ================= 配置 =================
 BASE_URL = "https://intervals.icu/api/v1"
-DEFAULT_STORAGE_PATH = Path.home() / ".openclaw" / "workspace" / "body-management-data"
+DEFAULT_STORAGE_PATH = Path(__file__).parent.parent / "config"
 STORAGE_PATH = Path(os.environ.get("BODY_MANAGEMENT_DATA", DEFAULT_STORAGE_PATH))
 CONFIG_FILE = STORAGE_PATH / "config.json"
 

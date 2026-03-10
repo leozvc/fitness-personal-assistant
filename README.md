@@ -18,10 +18,7 @@ Intervals.icu 数据同步工具 - **无需手动配置凭证**
 openclaw skills install --from clawhub fitness-personal-assistant
 ```
 
-首次使用时会自动引导输入 API 凭证：
-1. 注册账号：https://intervals.icu/register
-2. 获取凭证：Settings → API Keys
-3. 按提示输入 Athlete ID 和 API Key
+首次使用时会自动引导输入 API 凭证，配置保存在技能目录的 `config/config.json`（已 gitignore）。
 
 ---
 
@@ -95,6 +92,19 @@ python3 meal-to-intervals.py --text "200g 牛肉" --dry-run
 ✅ **优雅的错误处理**（JSON 解析失败/字段缺失都引导重新配置）  
 ✅ **自然语言饮食记录**（中英文混合输入）  
 ✅ **职业级身体状态报告**（带深度解读和行动建议）  
+
+---
+
+## 🔐 安全说明
+
+### API 凭证存储位置
+- **路径**: `~/.openclaw/workspace/skills/fitness-personal-assistant/config/config.json`
+- **权限**: `600` (仅所有者可读/写)
+- **Git 状态**: ✅ 已忽略 (`gitignore`)，不会提交到 GitHub
+
+### 网络请求白名单
+- `https://intervals.icu/api/v1/*` (Wellness/Activities)
+- `https://world.openfoodfacts.org/*` (Food nutritional data)
 
 ---
 

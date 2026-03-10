@@ -43,3 +43,6 @@ logs/
 dist/
 build/
 *.egg-info/
+
+# API credentials - CRITICAL: DO NOT COMMIT!
+config/
