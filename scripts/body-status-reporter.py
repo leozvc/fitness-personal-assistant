@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Fitness Personal Assistant - body-status-reporter
-Version: v3.1.0
+Version: v3.2.0
 基于 Intervals.icu API 客户端
 显示身体状态报告（训练负荷 + 恢复指标 + 近期活动）- 增强版带深度解读
 优化输出模板为表格形式
