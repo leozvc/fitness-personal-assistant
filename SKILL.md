@@ -71,39 +71,66 @@ API Key: YOUR_INTERVALS_ICU_API_KEY_HERE
 
 凭证会自动保存到 `config.json`,权限设置为 `600`。
 
-**手动配置方式:**
-```bash
-mkdir -p ~/.openclaw/workspace/skills/fitness-personal-assistant/config
-```
+---
 
-编辑 `~/.openclaw/workspace/skills/fitness-personal-assistant/config/config.json`:
-```json
-{
-  "intervals_icu": {
-    "api_key": "YOUR_API_KEY",
-    "athlete_id": "iYOUR_ID"
-  }
-}
-```
+## 🔧 首次配置引导 🎯
 
-**注意:** config/目录已 gitignore，不会提交到 GitHub。
+如果你是第一次使用此技能，按以下步骤操作：
 
-### 4️⃣ 验证安装
+### 步骤 1：注册 intervals.icu 账号
 
-运行健康检查：
+1. 访问 [https://intervals.icu/register](https://intervals.icu/register)
+2. 填写邮箱和密码完成注册
+3. 登录账户
+
+### 步骤 2：获取 API 凭证
+
+1. 登录后点击右上角头像 → **Settings**
+2. 选择 **API Keys** 标签页
+3. 复制以下两个信息:
+   - **Athlete ID**: 格式为 `iXXXXXXXXX`（如 `i206099`）
+   - **API Key**: 长字符串（如 `abc123def456...`）
+
+### 步骤 3：运行任意命令触发自动配置
+
+群里发送消息或使用命令行：
+
 ```bash
 cd ~/.openclaw/workspace/skills/fitness-personal-assistant/scripts
-python3 intervals_api_client.py
+python3 body-status-reporter.py
 ```
 
-预期输出：
+系统会显示：
+
 ```
-✅ API 连接成功
-📊 获取运动员摘要...
-  体能 (fitness): 19.74
-  疲劳 (fatigue): 30.43
-  形态 (form/TSB): -10.69
+⚠️ 配置文件未找到：~/.../config/config.json
+
+🔧 正在帮您初始化配置...
+
+==================================================
+🔐 配置 Intervals.icu API 凭证
+==================================================
+
+请先注册账号：https://intervals.icu/register
+获取凭证：Settings → API Keys
+
+请输入 Athlete ID (例如：iXXXXXXXXX): i206099
+请输入 API Key: *************
+
+✅ 凭证验证成功！
+✅ 配置已保存到：~/.../config/config.json
+==================================================
 ```
+
+### 步骤 4：测试连接
+
+重新运行查看身体状态：
+
+```bash
+python3 body-status-reporter.py
+```
+
+应该能正常输出分析报告！
 
 ---
 
